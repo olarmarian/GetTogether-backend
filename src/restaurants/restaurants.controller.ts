@@ -11,6 +11,7 @@ import {
   UsePipes,
   Delete,
 } from '@nestjs/common';
+import { RestaurantDto } from './dto/restaurant.dto';
 import { Restaurant } from './interfaces/restaurant.interface';
 import { RestaurantValidationPipe } from './pipes/restaurant-validation.pipe';
 import { RestaurantsService } from './restaurants.service';
@@ -22,21 +23,23 @@ export class RestaurantsController {
 
   @Get()
   @HttpCode(201)
-  getRestaurants(): Promise<Restaurant[]> {
+  getRestaurants(): Promise<RestaurantDto[]> {
     console.log('Read restaurants.');
     return this.restaurantsService.findAll();
   }
 
   @Get(':id')
-  getRestaurant(@Param('id') id: string): Promise<Restaurant> {
+  getRestaurant(@Param('id') id: string): Promise<RestaurantDto> {
     console.log(`Read restaurant with id: ${id}`);
     return this.restaurantsService.findById(id);
   }
 
   @Post()
   @UsePipes(new RestaurantValidationPipe(RestaurantSchema))
-  createRestaurant(@Body() restaurant: Restaurant): any {
-    console.log(`Create restaurant: `, restaurant);
+  createRestaurant(@Body() restaurantDto: RestaurantDto): any {
+    console.log(`Create restaurant: `, restaurantDto);
+
+    const restaurant: Restaurant = this.convertDtoToRestaurant(restaurantDto);
     return this.restaurantsService
       .createRestaurant(restaurant)
       .then(() => {
@@ -49,8 +52,10 @@ export class RestaurantsController {
 
   @Put()
   @UsePipes(new RestaurantValidationPipe(RestaurantSchema))
-  updateRestaurant(@Body() restaurant: Restaurant): any {
-    console.log(`Update restaurant with id: ${restaurant.id}`);
+  updateRestaurant(@Body() restaurantDto: RestaurantDto): any {
+    console.log(`Update restaurant with id: ${restaurantDto.id}`);
+
+    const restaurant: Restaurant = this.convertDtoToRestaurant(restaurantDto);
     return this.restaurantsService
       .updateRestaurant(restaurant)
       .then(() => {
@@ -72,5 +77,31 @@ export class RestaurantsController {
       .catch(err => {
         return new HttpException(err, HttpStatus.BAD_REQUEST);
       });
+  }
+
+  convertDtoToRestaurant(restaurant: RestaurantDto): Restaurant {
+    return {
+      id: restaurant.id,
+      createdAt: restaurant.createdAt,
+      location: restaurant.location,
+      name: restaurant.location,
+      phone: restaurant.phone,
+      searchName: restaurant.searchName,
+      specifics: restaurant.specifics,
+      tags: restaurant.tags,
+    };
+  }
+
+  convertRestaurantToDto(restaurant: Restaurant): RestaurantDto {
+    return {
+      id: restaurant.id,
+      createdAt: restaurant.createdAt,
+      location: restaurant.location,
+      name: restaurant.location,
+      phone: restaurant.phone,
+      searchName: restaurant.searchName,
+      specifics: restaurant.specifics,
+      tags: restaurant.tags,
+    };
   }
 }
